@@ -79,17 +79,23 @@ app.post('/postData', async (req, res) => {
 // Rota para atualizar dados por ID
 app.put('/update/:id', async (req, res) => {
     const id = req.params.id;
-    const { processo, interessado, setor, tipo_documento, valor, sgd, providencia } = req.body;
+    const { processo, interessado, setor, tipo_documento, valor, sgd, providencia, data } = req.body;
 
     const update_query = `
         UPDATE signature_day 
         SET processo = $1, interessado = $2, setor = $3, tipo_documento = $4, valor = $5, sgd = $6, providencia = $7, data = $8 
         WHERE id = $9
     `;
+
     try {
         const result = await pool.query(update_query, [
-            processo, interessado, setor, tipo_documento, valor, sgd, providencia, new Date(), id // Atualiza também a data
+            processo, interessado, setor, tipo_documento, valor, sgd, providencia, data, id // Mantém a data existente
         ]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: "Registro não encontrado para atualização." });
+        }
+
         res.status(200).json({ message: "Dados atualizados com sucesso." });
     } catch (err) {
         console.error("Erro ao atualizar dados:", err);
